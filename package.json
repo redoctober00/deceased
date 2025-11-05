@@ -1,5 +1,6 @@
 {
   "name": "deceased",
+  "homepage": "https://redoctober00.github.io/deceased/",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -8,7 +9,9 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "deploy": "gh-pages -d dist"
+   
+    "predeploy": "npm run build",
+     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "react": "^19.1.1",
