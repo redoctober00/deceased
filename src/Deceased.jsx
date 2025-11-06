@@ -18,22 +18,55 @@ const LINES = [
 
 export default function Deceased() {
   const [currentLine, setCurrentLine] = useState(0);
-
+  const [isScattered, setIsScattered] = useState(false);
+  const [scatteredLetters, setScatteredLetters] = useState([]);
+  const [idleTimer, setIdleTimer] = useState(null);
 
   const goToNextLine = () => {
     if (currentLine < LINES.length - 1) {
       setCurrentLine(prev => prev + 1);
     }
+    resetIdleTimer();
   };
-
 
   const goToPrevLine = () => {
     if (currentLine > 0) {
       setCurrentLine(prev => prev - 1);
     }
+    resetIdleTimer();
   };
 
- 
+  
+  const resetIdleTimer = () => {
+    setIsScattered(false);
+    if (idleTimer) {
+      clearTimeout(idleTimer);
+    }
+    const newTimer = setTimeout(() => {
+      scatterCurrentLine();
+    }, 5000); 
+    setIdleTimer(newTimer);
+  };
+
+
+  const scatterCurrentLine = () => {
+    if (currentLine < LINES.length) {
+      const text = LINES[currentLine];
+      const letters = text.split('').map((char, index) => ({
+        char,
+        id: `${currentLine}-${index}`,
+        originalX: index * 2.5, 
+        originalY: 0, 
+        targetX: Math.random() * 80 + 10, 
+        targetY: Math.random() * 70 + 15, 
+        rotation: Math.random() * 720 - 360, 
+        delay: Math.random() * 1.5 + index * 0.1, 
+      }));
+      setScatteredLetters(letters);
+      setIsScattered(true);
+    }
+  };
+
   const handleClick = (event) => {
     const rect = event.currentTarget.getBoundingClientRect();
     const clickY = event.clientY - rect.top;
@@ -41,10 +74,8 @@ export default function Deceased() {
     const clickPosition = clickY / containerHeight;
 
     if (clickPosition < 0.5) {
-     
       goToPrevLine();
     } else {
- 
       goToNextLine();
     }
   };
@@ -78,6 +109,27 @@ export default function Deceased() {
     updateBloodPosition();
   }, [currentLine]);
 
+ 
+  useEffect(() => {
+    resetIdleTimer();
+    
+   
+    return () => {
+      if (idleTimer) {
+        clearTimeout(idleTimer);
+      }
+    };
+  }, [currentLine]);
+
+
+  useEffect(() => {
+    return () => {
+      if (idleTimer) {
+        clearTimeout(idleTimer);
+      }
+    };
+  }, [idleTimer]);
+
   return (
     <>
 
@@ -97,7 +149,7 @@ export default function Deceased() {
         <div className="click-zone-lower" />
         
         <div className="deceased-content">
-          {currentLine < LINES.length && (
+          {currentLine < LINES.length && !isScattered && (
             <p
               className="deceased-line"
               style={{
@@ -109,8 +161,29 @@ export default function Deceased() {
               {LINES[currentLine]}
             </p>
           )}
+
+       
+          {isScattered && (
+            <div className="scattered-container">
+              {scatteredLetters.map((letter) => (
+                <span
+                  key={letter.id}
+                  className="scattered-letter"
+                  style={{
+                    '--original-x': `${letter.originalX}ch`,
+                    '--original-y': '0px',
+                    '--target-x': `${letter.targetX}%`,
+                    '--target-y': `${letter.targetY}%`,
+                    '--rotation': `${letter.rotation}deg`,
+                    animationDelay: `${letter.delay}s`,
+                  }}
+                >
+                  {letter.char}
+                </span>
+              ))}
+            </div>
+          )}
           
-      
           <div className="navigation-hints">
             {currentLine > 0 && (
               <div className="hint-back">↑</div>
@@ -120,7 +193,6 @@ export default function Deceased() {
             )}
           </div>
           
-      
           <div className="progress-indicator">
             {currentLine + 1} / {LINES.length}
           </div>
