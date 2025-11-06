@@ -80,7 +80,9 @@ export default function Deceased() {
 
   return (
     <>
-   
+
+      <div className="ink-transition" />
+    
       <div className="deceased-background" />
       <div className="deceased-overlay" />
       
